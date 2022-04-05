@@ -1,8 +1,10 @@
 #include "utils.h"
 
+#include <sys/ioctl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static _Bool is_color(void)
 {
@@ -11,23 +13,40 @@ static _Bool is_color(void)
 	return strstr(term, "color")!=NULL;
 }
 
+static _Bool is_redirected(void)
+{
+	int foo;
+	return ioctl(STDIN_FILENO, FIONREAD, &foo) == -1;
+}
+
+
 static void red(void)
 {
-	if(is_color()) puts("\e[31m");
+	if(is_color() && !is_redirected()) puts("\e[31m");
 }
 static void blue(void)
 {
-	if(is_color()) puts("\e[34m");
+	if(is_color() && !is_redirected()) puts("\e[34m");
 }
 
 
 static void reset(void)
 {
-	if(is_color()) puts("\e[0m");
+	if(is_color() && !is_redirected()) puts("\e[0m");
 }
+
+static void cls(void)
+{
+	if(!is_redirected()) puts("\e[2J\e[1;1H");
+}
+
 
 void banner(void)
 {
+	int scroll = (is_redirected()) ? 0 : 10;
+	for(int i=scroll; i>=0; i--) {
+	cls();
+		for(int j=0;j<i;j++) puts(" ");
 	red();
 	puts(" ███▄ ▄███▓ ██▓ ██ ▄█▀ ▄████▄      ██▓███    ██████▓██   ██▓ ▄████▄   ██░ ██  ▒█████     ▄▄▄█████▓ ██▓ ▄████▄");
 	puts("▓██▒▀█▀ ██▒▓██▒ ██▄█▒ ▒██▀ ▀█     ▓██░  ██▒▒██    ▒ ▒██  ██▒▒██▀ ▀█  ▓██░ ██▒▒██▒  ██▒   ▓  ██▒ ▓▒▓██▒▒██▀ ▀█");
@@ -39,6 +58,8 @@ void banner(void)
 	puts("░      ░    ▒ ░░ ░░ ░ ░           ░░       ░  ░  ░  ▒ ▒ ░░  ░         ░  ░░ ░░ ░ ░ ▒       ░       ▒ ░░");
 	puts("       ░    ░  ░  ░   ░ ░                        ░  ░ ░     ░ ░       ░  ░  ░    ░ ░               ░  ░ ░");
 	puts("                      ░                             ░ ░     ░                                         ░");
+	usleep(30000L);
+	}
 	reset();
 }
 
