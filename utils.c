@@ -119,3 +119,13 @@ void macbin(u8 *mb, char *s, size_t check_len)
 	printf("\n");
 }
 
+void format_time(float *secs, char *buf, size_t len)
+{
+	int h = *secs  / 3600;
+	int days = h / 24;
+	h -= 24*days;
+	int mins = (long)*secs % 3600;
+	mins /= 60;
+	snprintf(buf, len, "%dd %02dh %02dm", days, h, mins); 
+}
+

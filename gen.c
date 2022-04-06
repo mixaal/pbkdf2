@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <time.h>
+#include <unistd.h>
 #include "gen.h"
 #include "decode.h"
+#include "utils.h"
 
 void gen(char **charset, int length, decode_t *input)
 {
@@ -41,8 +43,11 @@ void gen(char **charset, int length, decode_t *input)
 	time_t now;
 	long elapsed;
 	long cracked = 0;
+	float left;
+	float progress;
 #pragma omp parallel for
 	for(unsigned long j=0; j<total; j++) {
+		long lastbreak =0;
 	        unsigned char passwd[length+1];
 	        passwd[length]='\0';
 		for(int i=0; i<length; i++) {
@@ -52,10 +57,22 @@ void gen(char **charset, int length, decode_t *input)
 				
 		}
 	        if((cracked%100000)==0) {
-		      printf("%ld: %s, speed: %f progress: %.3f\r", j, passwd, (float)cracked/elapsed, (float)cracked/total);
-		      fflush(stdout);
+		      char timebuf[256];
 		      now = time(NULL);
 		      elapsed = now - start;
+		      if(lastbreak==0) lastbreak = start;
+		      long duration = now - lastbreak;
+		      if(duration>3600) {
+			      printf("\nTime to rest for 4mins\n");
+			      sleep(240);
+			      lastbreak = now;
+		      }
+		      progress = (float)cracked/total;
+		      left = (float)elapsed/progress;
+		      format_time(&left, timebuf, 256);
+		      printf("%ld: %s, speed: %f progress: %.3f  left: %s                         \r", j, passwd, (float)cracked/elapsed, progress, timebuf);
+		  
+		      fflush(stdout);
 		}
 		cracked++;
 		//printf("P:%s\n", passwd);

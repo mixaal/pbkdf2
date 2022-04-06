@@ -8,5 +8,6 @@ void credits(void);
 int cmppkid(u8 *pkid1, u8 *pkid2);
 void printhex(const char *s, u8 *buf, int len);
 void macbin(u8 *mb, char *s, size_t check_len);
+void format_time(float *secs, char *buf, size_t len);
 
 #endif /* __UTILS_H__ */
